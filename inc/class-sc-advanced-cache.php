@@ -44,6 +44,24 @@ class SC_Advanced_Cache {
 	}
 
 	/**
+	 * Empty file for clean up
+	 *
+	 * @since  1.0
+	 * @return bool
+	 */
+	public function clean_up() {
+		global $wp_filesystem;
+
+		$file = untrailingslashit( WP_CONTENT_DIR )  . '/advanced-cache.php';
+
+		if ( ! $wp_filesystem->put_contents( $file, '', FS_CHMOD_FILE ) ) {
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Write advanced-cache.php
 	 *
 	 * @since  1.0
@@ -120,7 +138,14 @@ class SC_Advanced_Cache {
 			return false;
 		}
 
-		$config_file = explode( PHP_EOL, $wp_filesystem->get_contents( $config_path ) );
+		$config_file_string = $wp_filesystem->get_contents( $config_path );
+
+		// Config file is empty. Maybe couldn't read it?
+		if ( empty( $config_file_string ) ) {
+			return false;
+		}
+
+		$config_file = explode( PHP_EOL, $config_file_string );
 		$line_key = false;
 
 		foreach ( $config_file as $key => $line ) {
