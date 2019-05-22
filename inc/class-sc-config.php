@@ -4,28 +4,44 @@ defined( 'ABSPATH' ) || exit;
 class SC_Config {
 
 	/**
-	 * Store default configuration
+	 * Setup object
 	 *
-	 * @var array
+	 * @since 1.0.1
 	 */
-	public $defaults = array(
-		'enable_page_caching'             => array(
-			'default'   => false,
-			'sanitizer' => 'boolval',
-		),
-		'advanced_mode'                   => array(
-			'default'   => false,
-			'sanitizer' => 'boolval',
-		),
-		'enable_in_memory_object_caching' => array(
-			'default'   => false,
-			'sanitizer' => 'boolval',
-		),
-		'in_memory_cache'                 => array(
-			'default'   => 'memcached',
-			'sanitizer' => 'sanitize_text_field',
-		),
-	);
+	public $defaults = array();
+
+
+	public function __construct() {
+		$this->defaults = array(
+			'enable_page_caching'             => array(
+				'default'   => false,
+				'sanitizer' => array( $this, 'boolval' ),
+			),
+			'advanced_mode'                   => array(
+				'default'   => false,
+				'sanitizer' => array( $this, 'boolval' ),
+			),
+			'enable_in_memory_object_caching' => array(
+				'default'   => false,
+				'sanitizer' => array( $this, 'boolval' ),
+			),
+			'in_memory_cache'                 => array(
+				'default'   => 'memcached',
+				'sanitizer' => 'sanitize_text_field',
+			),
+		);
+	}
+
+	/**
+	 * Make sure we support old PHP with boolval
+	 *
+	 * @param  string $value
+	 * @since  1.0
+	 * @return boolean
+	 */
+	public function boolval( $value ) {
+		return (bool) $value;
+	}
 
 	/**
 	 * Return defaults
