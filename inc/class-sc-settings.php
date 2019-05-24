@@ -1,11 +1,14 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class SC_Settings {
+class SC_Settings
+{
 
 	//public $request_creds = false;
 
-	public function __construct() { }
+	public function __construct() {
+
+	}
 
 	/**
 	 * Setup the plugin
@@ -13,33 +16,68 @@ class SC_Settings {
 	 * @since 1.0
 	 */
 	public function setup() {
+
 		add_action( 'admin_menu', array( $this, 'action_admin_menu' ) );
 		add_action( 'load-settings_page_simple-cache', array( $this, 'update' ) );
 		add_action( 'load-settings_page_simple-cache', array( $this, 'purge_cache' ) );
 		add_action( 'admin_notices', array( $this, 'setup_notice' ) );
-		add_action( 'admin_enqueue_scripts' , array( $this, 'action_admin_enqueue_scripts_styles' ) );
-    }
+		add_action( 'admin_notices', array( $this, 'cant_write_notice' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'action_admin_enqueue_scripts_styles' ) );
+	}
 
-    /**
-     * Output turn on notice
-     *
-     * @since  1.0
-     */
-    public function setup_notice() {
-    	$config = SC_Config::factory()->get();
+	/**
+	 * Output turn on notice
+	 *
+	 * @since 1.0
+	 */
+	public function setup_notice() {
 
-    	if ( ! empty( $config['enable_page_caching'] ) || ! empty( $config['advanced_mode'] ) ) {
-    		return;
-    	}
-    	?>
+		$cant_write = get_option( 'sc_cant_write', false );
+
+		if ( $cant_write ) {
+			return;
+		}
+
+		$config = SC_Config::factory()->get();
+
+		if ( ! empty( $config['enable_page_caching'] ) || ! empty( $config['advanced_mode'] ) ) {
+			return;
+		}
+
+		?>
 		<div class="notice notice-warning">
 			<p>
 				<?php esc_html_e( "Simple Cache won't work until you turn it on.", 'simple-cache' ); ?>
-				<a href="options.php?wp_http_referer=<?php echo esc_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ); ?>&amp;action=sc_update&amp;sc_settings_nonce=<?php echo wp_create_nonce( 'sc_update_settings' ); ?>&amp;sc_simple_cache[enable_page_caching]=1" class="button button-primary" style="margin-left: 5px;"><?php esc_html_e( "Turn On Caching", 'simple-cache' ); ?></a>
+				<a href="options-general.php?page=simple-cache&amp;wp_http_referer=<?php echo esc_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ); ?>&amp;action=sc_update&amp;sc_settings_nonce=<?php echo wp_create_nonce( 'sc_update_settings' ); ?>&amp;sc_simple_cache[enable_page_caching]=1" class="button button-primary" style="margin-left: 5px;"><?php esc_html_e( 'Turn On Caching', 'simple-cache' ); ?></a>
 			</p>
 		</div>
-    	<?php
-    }
+		<?php
+	}
+
+	/**
+	 * Output can't write notice
+	 *
+	 * @since 1.0
+	 */
+	public function cant_write_notice() {
+
+		global $pagenow;
+
+		$cant_write = get_option( 'sc_cant_write', false );
+
+		if ( ! $cant_write ) {
+			return;
+		}
+
+		?>
+		<div class="notice notice-error">
+			<p>
+				<?php esc_html_e( "Simple Cache can't create or modify files on your system. Contact your host.", 'simple-cache' ); ?>
+				<a href="options-general.php?page=simple-cache&amp;wp_http_referer=<?php echo esc_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ); ?>&amp;action=sc_update&amp;sc_settings_nonce=<?php echo wp_create_nonce( 'sc_update_settings' ); ?>" class="button button-primary" style="margin-left: 5px;"><?php esc_html_e( 'Try Again', 'simple-cache' ); ?></a>
+			</p>
+		</div>
+		<?php
+	}
 
 	/**
 	 * Enqueue settings screen js/css
@@ -47,6 +85,7 @@ class SC_Settings {
 	 * @since 1.0
 	 */
 	public function action_admin_enqueue_scripts_styles() {
+
 		global $pagenow;
 
 		if ( 'options-general.php' == $pagenow && ! empty( $_GET['page'] ) && 'simple-cache' == $_GET['page'] ) {
@@ -70,17 +109,19 @@ class SC_Settings {
 	 * @since 1.0
 	 */
 	public function action_admin_menu() {
+
 		add_submenu_page( 'options-general.php', esc_html__( 'Simple Cache', 'simple-cache' ), esc_html__( 'Simple Cache', 'simple-cache' ), 'manage_options', 'simple-cache', array( $this, 'screen_options' ) );
 	}
 
 	/**
 	 * Purge cache manually
 	 *
-	 * @since  1.0
+	 * @since 1.0
 	 */
 	public function purge_cache() {
+
 		if ( ! empty( $_REQUEST['action'] ) && 'sc_purge_cache' === $_REQUEST['action'] ) {
-			if ( ! current_user_can ( 'manage_options' ) || empty( $_REQUEST['sc_cache_nonce'] ) || ! wp_verify_nonce( $_REQUEST['sc_cache_nonce'], 'sc_purge_cache' ) ) {
+			if ( ! current_user_can( 'manage_options' ) || empty( $_REQUEST['sc_cache_nonce'] ) || ! wp_verify_nonce( $_REQUEST['sc_cache_nonce'], 'sc_purge_cache' ) ) {
 				wp_die( 'Cheatin, eh?' );
 			}
 
@@ -103,26 +144,29 @@ class SC_Settings {
 	 * @since 1.0
 	 */
 	public function update() {
+
 		if ( ! empty( $_REQUEST['action'] ) && 'sc_update' === $_REQUEST['action'] ) {
 
 			if ( ! current_user_can( 'manage_options' ) || empty( $_REQUEST['sc_settings_nonce'] ) || ! wp_verify_nonce( $_REQUEST['sc_settings_nonce'], 'sc_update_settings' ) ) {
 				wp_die( esc_html__( 'Cheatin, eh?', 'simple-cache' ) );
 			}
 
-			ob_start();
-			if ( ! SC_Config::factory()->verify_access() ) {
-				return;
+			if ( ! SC_Config::factory()->verify_file_access() ) {
+				update_option( 'sc_cant_write', true );
+				wp_redirect( $_REQUEST['wp_http_referer'] );
+				exit;
 			}
-			ob_get_clean();
+
+			delete_option( 'sc_cant_write' );
 
 			$defaults = SC_Config::factory()->defaults;
 			$current_config = SC_Config::factory()->get();
 
 			foreach ( $defaults as $key => $default ) {
-				$clean_config[$key] = $current_config[$key];
+				$clean_config[ $key ] = $current_config[ $key ];
 
-				if ( isset( $_REQUEST['sc_simple_cache'][$key] ) ) {
-					$clean_config[$key] = call_user_func( $default['sanitizer'], $_REQUEST['sc_simple_cache'][$key] );
+				if ( isset( $_REQUEST['sc_simple_cache'][ $key ] ) ) {
+					$clean_config[ $key ] = call_user_func( $default['sanitizer'], $_REQUEST['sc_simple_cache'][ $key ] );
 				}
 			}
 
@@ -152,8 +196,8 @@ class SC_Settings {
 	/**
 	 * Sanitize options
 	 *
-	 * @param array $option
-	 * @since 1.0
+	 * @param  array $option
+	 * @since  1.0
 	 * @return array
 	 */
 	public function sanitize_options( $option ) {
@@ -175,17 +219,13 @@ class SC_Settings {
 	 * @since 1.0
 	 */
 	public function screen_options() {
-		if ( ! empty( $_REQUEST['action'] ) && ! SC_Config::factory()->verify_access() ) {
-			return;
-		}
 
 		$config = SC_Config::factory()->get();
-
 	?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'Simple Cache Settings', 'simple-cache' ); ?></h1>
+	 <div class="wrap">
+	  <h1><?php esc_html_e( 'Simple Cache Settings', 'simple-cache' ); ?></h1>
 
-			<form action="" method="post">
+	  <form action="" method="post">
 				<?php wp_nonce_field( 'sc_update_settings', 'sc_settings_nonce' ); ?>
 				<input type="hidden" name="action" value="sc_update">
 				<input type="hidden" name="wp_http_referer" value="<?php echo esc_attr( wp_unslash( $_SERVER['REQUEST_URI'] ) ); ?>'" />
@@ -198,12 +238,14 @@ class SC_Settings {
 					</select>
 				</div>
 
-				<table class="form-table sc-simple-mode-table <?php if ( empty( $config['advanced_mode'] ) ) : ?>show<?php endif; ?>">
+				<table class="form-table sc-simple-mode-table <?php if ( empty( $config['advanced_mode'] ) ) : ?>show<?php
+			   endif; ?>">
 					<tbody>
 						<tr>
 							<th scope="row"><label for="sc_enable_caching_simple"><span class="setting-highlight">*</span><?php _e( 'Enable Caching', 'simple-cache' ); ?></label></th>
 							<td>
-								<select <?php if ( ! empty( $config['advanced_mode'] ) ) : ?>disabled<?php endif; ?> name="sc_simple_cache[enable_page_caching]" id="sc_enable_page_caching_simple">
+								<select <?php if ( ! empty( $config['advanced_mode'] ) ) : ?>disabled<?php
+							   endif; ?> name="sc_simple_cache[enable_page_caching]" id="sc_enable_page_caching_simple">
 									<option value="0"><?php esc_html_e( 'No', 'simple-cache' ); ?></option>
 									<option <?php selected( $config['enable_page_caching'], true ); ?> value="1"><?php esc_html_e( 'Yes', 'simple-cache' ); ?></option>
 								</select>
@@ -221,12 +263,14 @@ class SC_Settings {
 					</tbody>
 				</table>
 
-				<table class="form-table sc-advanced-mode-table <?php if ( ! empty( $config['advanced_mode'] ) ) : ?>show<?php endif; ?>">
+				<table class="form-table sc-advanced-mode-table <?php if ( ! empty( $config['advanced_mode'] ) ) : ?>show<?php
+			   endif; ?>">
 					<tbody>
 						<tr>
 							<th scope="row"><label for="sc_enable_caching_advanced"><?php _e( 'Enable Page Caching', 'simple-cache' ); ?></label></th>
 							<td>
-								<select <?php if ( empty( $config['advanced_mode'] ) ) : ?>disabled<?php endif; ?> name="sc_simple_cache[enable_page_caching]" id="sc_enable_page_caching_advanced">
+								<select <?php if ( empty( $config['advanced_mode'] ) ) : ?>disabled<?php
+							   endif; ?> name="sc_simple_cache[enable_page_caching]" id="sc_enable_page_caching_advanced">
 									<option value="0"><?php esc_html_e( 'No', 'simple-cache' ); ?></option>
 									<option <?php selected( $config['enable_page_caching'], true ); ?> value="1"><?php esc_html_e( 'Yes', 'simple-cache' ); ?></option>
 								</select>
@@ -247,8 +291,10 @@ class SC_Settings {
 							</td>
 						</tr>
 						<tr>
-							<th class="in-memory-cache <?php if ( ! empty( $config['enable_in_memory_object_caching'] ) ) : ?>show<?php endif; ?>" scope="row"><label for="sc_in_memory_cache"><?php _e( 'In Memory Cache', 'simple-cache' ); ?></label></th>
-							<td class="in-memory-cache <?php if ( ! empty( $config['enable_in_memory_object_caching'] ) ) : ?>show<?php endif; ?>">
+							<th class="in-memory-cache <?php if ( ! empty( $config['enable_in_memory_object_caching'] ) ) : ?>show<?php
+						   endif; ?>" scope="row"><label for="sc_in_memory_cache"><?php _e( 'In Memory Cache', 'simple-cache' ); ?></label></th>
+							<td class="in-memory-cache <?php if ( ! empty( $config['enable_in_memory_object_caching'] ) ) : ?>show<?php
+						   endif; ?>">
 								<select name="sc_simple_cache[in_memory_cache]" id="sc_in_memory_cache">
 									<option <?php selected( $config['in_memory_cache'], 'memcached' ); ?> value="memcached">Memcached</option>
 									<option <?php selected( $config['in_memory_cache'], 'redis' ); ?> value="redis">Redis</option>
@@ -262,32 +308,33 @@ class SC_Settings {
 							<td>
 								<a class="button" href="options.php?wp_http_referer=<?php echo esc_url( wp_unslash( $_SERVER['REQUEST_URI'] ) ); ?>&amp;action=sc_purge_cache&amp;sc_cache_nonce=<?php echo wp_create_nonce( 'sc_purge_cache' ); ?>"><?php esc_html_e( 'Purge', 'simple-cache' ); ?></a>
 
-								<p class="description"><?php esc_html_e( "Purges object and page caches.", 'simple-cache' ); ?></p>
+								<p class="description"><?php esc_html_e( 'Purges object and page caches.', 'simple-cache' ); ?></p>
 							</td>
 						</tr>
 					</tbody>
 				</table>
 
 				<?php submit_button(); ?>
-			</form>
-		</div>
+	  </form>
+	 </div>
 	<?php
 	}
 
-    /**
-     * Return an instance of the current class, create one if it doesn't exist
-     *
-	 * @since 1.0
-     * @return object
-     */
-    public static function factory() {
-    	static $instance;
+	/**
+	 * Return an instance of the current class, create one if it doesn't exist
+	 *
+	 * @since  1.0
+	 * @return object
+	 */
+	public static function factory() {
 
-        if ( ! $instance ) {
-            $instance = new self();
-            $instance->setup();
-        }
+		static $instance;
 
-        return $instance;
-    }
+		if ( ! $instance ) {
+			$instance = new self();
+			$instance->setup();
+		}
+
+		return $instance;
+	}
 }
