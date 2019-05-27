@@ -1,8 +1,7 @@
 <?php
 defined( 'ABSPATH' ) || exit;
 
-class SC_Object_Cache
-{
+class SC_Object_Cache {
 
 	/**
 	 * Setup hooks/filters
@@ -95,7 +94,7 @@ class SC_Object_Cache
 			PHP_EOL . "define( 'SC_OBJECT_CACHE', true );" .
 			PHP_EOL . 'if ( is_admin() ) { return; }' .
 			PHP_EOL . "if ( ! @file_exists( WP_CONTENT_DIR . '/sc-config/config-' . \$_SERVER['HTTP_HOST'] . '.php' ) ) { return; }" .
-			PHP_EOL . 'global \$sc_config;' .
+			PHP_EOL . 'global $sc_config;' .
 			PHP_EOL . "\$sc_config = include( WP_CONTENT_DIR . '/sc-config/config-' . \$_SERVER['HTTP_HOST'] . '.php' );" .
 			PHP_EOL . "if ( empty( \$sc_config ) || empty( \$sc_config['enable_in_memory_object_caching'] ) ) { return; }" .
 			PHP_EOL . "if ( @file_exists( '" . untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/dropins/' . $cache_file . "' ) ) { require_once( '" . untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/dropins/' . $cache_file . "' ); }" . PHP_EOL;

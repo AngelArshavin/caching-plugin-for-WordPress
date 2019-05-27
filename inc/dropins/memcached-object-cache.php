@@ -104,8 +104,7 @@ function wp_cache_add_non_persistent_groups( $groups ) {
 	$wp_object_cache->add_non_persistent_groups( $groups );
 }
 
-class WP_Object_Cache
-{
+class WP_Object_Cache {
 	var $global_groups = array();
 
 	var $no_mc_groups = array();
@@ -364,7 +363,7 @@ class WP_Object_Cache
 		'set' => 'purple',
 		'add' => 'blue',
 		'delete' => 'red',
-		);,
+		);
 
 		$cmd = substr( $line, 0, strpos( $line, ' ' ) );
 
