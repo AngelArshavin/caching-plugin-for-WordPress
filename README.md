@@ -11,10 +11,6 @@ Simple Cache was constructed after getting frustrated with the major caching plu
 
 If you need your site to run fast, don't have time to mess with complicated settings, and have been frustrated by other caching plugins, give Simple Cache a try.
 
-## Issues
-If you identify any errors or have an idea for improving the plugin, please
-[open an issue](https://github.com/tlovett1/simple-cache/issues?state=open).
-
 ## License
 
 Simple Cache is free software; you can redistribute it and/or modify it under the terms of the [GNU General
