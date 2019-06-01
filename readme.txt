@@ -34,6 +34,15 @@ For full documentation, questions, feature requests, and support concerning the 
 
 == Changelog ==
 
+= 1.2.1 =
+* Fix advanced dropdown bug
+
+= 1.2 =
+* Support gzip compression
+* Fix bug when config variable doesn't exist
+* Fix advanced tab toggling JS error
+* Fix bug where in memory cache setting was sticking in simple mode
+
 = 1.1 =
 * Add page cache length field
 * Code formatting
